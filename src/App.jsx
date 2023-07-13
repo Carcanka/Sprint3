@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import sun from "./assets/images/icon-sun.svg";
 import moon from "./assets/images/icon-moon.svg";
@@ -8,6 +8,20 @@ import cross from "./assets/images/icon-cross.svg";
 function App() {
   const [modo, setModo] = useState("light");
   const [girar, setGirar] = useState(false);
+
+  const [lista, setLista] = useState([
+    { id: 1, texto: "Tomar agua", active: true },
+    { id: 2, texto: "Finalizar práctica de estados y props", active: false },
+    { id: 3, texto: "Tomar agua", active: false },
+    {
+      id: 4,
+      texto: "Compartir lo aprendido con algún compañero",
+      active: false,
+    },
+    { id: 5, texto: "Probar pizza italiana", active: false },
+    { id: 6, texto: "Completar el desafío del sprint 3", active: false },
+  ]);
+  const [filtrados, setFiltrados] = useState(lista);
 
   function changeMode() {
     const modoActual = modo === "light" ? "dark" : "light";
@@ -19,14 +33,10 @@ function App() {
     setGirar((prevGirar) => !prevGirar);
   };
 
-  const [lista, setLista] = useState([
-    { id: 1, texto: "Tomar agua", active: true },
-    { id: 2, texto: "Finalizar práctica de estados y props", active: false },
-    { id: 3, texto: "Tomar agua", active: false },
-    { id: 4, texto: "Compartir lo aprendido con algún compañero", active: false },
-    { id: 5, texto: "Probar pizza italiana", active: false },
-    { id: 6, texto: "Completar el desafío del sprint 3", active: false },
-  ]);
+  useEffect(() => {
+    setFiltrados(lista);
+  }, [lista]);
+
   const crearTarea = (textoIngresado) => {
     setLista([
       { id: Math.random(), texto: textoIngresado, active: true },
@@ -44,21 +54,30 @@ function App() {
     setLista(nuevaLista);
   };
 
-  const [filtro, setFiltro] = useState('all');
-
   const handleFilterChange = (newFilter) => {
-    setFiltro(newFilter);
+    let tareasFiltradas = [];
 
-    const tareasFiltradas = lista.filter((tarea) => {
-      if (filtro === 'all') return true;
-      if (filtro === 'active') return tarea.active;
-      if (filtro === 'completed') return !tarea.active;
-  });
+    switch (newFilter) {
+      case "active":
+        tareasFiltradas = lista.filter((tarea) => tarea.active);
+        break;
+      case "completed":
+        tareasFiltradas = lista.filter((tarea) => !tarea.active);
+        break;
+      default:
+        tareasFiltradas = lista;
+        break;
+    }
+
+    setFiltrados(tareasFiltradas);
+  };
+
+  console.log(lista);
+
   const handleClearCompleted = () => {
     const nuevasTareas = lista.filter((tarea) => tarea.active);
     setLista(nuevasTareas);
-};
-};
+  };
 
   return (
     <div className={`cuerpo ${modo === "dark" ? "dark" : ""}`}>
@@ -83,17 +102,20 @@ function App() {
           />
         </div>
         <ul className="tareas">
-        {/* {tareasFiltradas.map((item) => */}
-          {lista.map((item) => {
+          {filtrados.map((item) => {
             return (
               <li className={`lista ${modo === "dark" ? "dark" : ""}`}>
                 <button
                   onClick={() => cambiarEstadoTarea(item.id)}
-                  className={`hecho ${item.active ? "" : "completed"} ${modo === "dark" ? "dark" : ""}`}
+                  className={`hecho ${item.active ? "" : "completed"} ${
+                    modo === "dark" ? "dark" : ""
+                  }`}
                 >
                   <img src={check} alt="" />
                 </button>
-                <span className={item.active ? "" : "completed"}>{item.texto}</span>
+                <span className={item.active ? "" : "completed"}>
+                  {item.texto}
+                </span>
                 <button onClick={() => borrarTarea(item.id)} className="borrar">
                   <img src={cross} alt="" />
                 </button>
@@ -103,44 +125,54 @@ function App() {
         </ul>
         <div className={`opciones ${modo === "dark" ? "dark" : ""}`}>
           <span>{lista.length} Left</span>
-          <button className={`accion ${modo === "dark" ? "dark" : ""}`} 
-          // onClick={handleClearCompleted}
+          <button
+            className={`accion ${modo === "dark" ? "dark" : ""}`}
+            // onClick={handleClearCompleted}
           >
             Clear Completed
           </button>
         </div>
         <div className={`cambiantes ${modo === "dark" ? "dark" : ""}`}>
           <button
-    className={`accion ${modo === "dark" ? "dark" : ""}`}
-    onClick={() => handleFilterChange('all')}
->
-    All
-</button>
-<button
-    className={`accion ${modo === "dark" ? "dark" : ""}`}
-    onClick={() => handleFilterChange('active')}
->
-    Active
-</button>
-          <button
-    className={`accion ${modo === "dark" ? "dark" : ""}`}
-    onClick={() => handleFilterChange('completed')}
->
-    Completed
-</button>
-        </div>
-        <div className={`opcionesDesktop ${modo === "dark" ? "dark" : ""}`}>
-        <span>{lista.length} Left</span>
-        <div className="cambiantesDesktop">       
-          <button className={`accion ${modo === "dark" ? "dark" : ""}`}>
+            className={`accion ${modo === "dark" ? "dark" : ""}`}
+            onClick={() => handleFilterChange("all")}
+          >
             All
           </button>
-          <button className={`accion ${modo === "dark" ? "dark" : ""}`}>
+          <button
+            className={`accion ${modo === "dark" ? "dark" : ""}`}
+            onClick={() => handleFilterChange("active")}
+          >
             Active
           </button>
-          <button className={`accion ${modo === "dark" ? "dark" : ""}`}>
+          <button
+            className={`accion ${modo === "dark" ? "dark" : ""}`}
+            onClick={() => handleFilterChange("completed")}
+          >
             Completed
           </button>
+        </div>
+        <div className={`opcionesDesktop ${modo === "dark" ? "dark" : ""}`}>
+          <span>{lista.length} Left</span>
+          <div className="cambiantesDesktop">
+            <button
+              className={`accion ${modo === "dark" ? "dark" : ""}`}
+              onClick={() => handleFilterChange("all")}
+            >
+              All
+            </button>
+            <button
+              className={`accion ${modo === "dark" ? "dark" : ""}`}
+              onClick={() => handleFilterChange("active")}
+            >
+              Active
+            </button>
+            <button
+              className={`accion ${modo === "dark" ? "dark" : ""}`}
+              onClick={() => handleFilterChange("completed")}
+            >
+              Completed
+            </button>
           </div>
           <button className={`accion ${modo === "dark" ? "dark" : ""}`}>
             Clear Completed
@@ -148,8 +180,8 @@ function App() {
         </div>
         <footer>
           <div className="pie">
-          <span>Full Stack Developer Bootcamp</span>
-          <span>Created by Carmelo Barrios</span>
+            <span>Full Stack Developer Bootcamp</span>
+            <span>Created by Carmelo Barrios</span>
           </div>
         </footer>
       </div>
